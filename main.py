@@ -7,10 +7,8 @@ from CreateBaseFromFile import CreateBaseFromFile
 from sklearn.model_selection import train_test_split
 from PCA import PCA as PCAR
 from Base import Base
-from PCACloves import Pca,Exemplo
 from Grafico import GerarGrafico
 from sklearn.decomposition import PCA
-from PCAScoreCloves import PcaScore as pcaScoreCloves
 from classificadores import *
 if __name__ == '__main__':
     
@@ -55,7 +53,7 @@ if __name__ == '__main__':
         for i in range(100):
             
             train_atr, test_atr, train_classes, test_classes = train_test_split(baseClimate.atributos, baseClimate.classes, test_size=0.5, random_state=i) 
-            pcaR.fit(train_atr)
+            pcaR.fitScore(Base(train_classes,train_atr))
             baseTreino = pcaR.run(Base(train_classes,train_atr), j)
             baseTeste = pcaR.run(Base(test_classes,test_atr),j)
             qt1 = len(test_classes)

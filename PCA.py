@@ -33,16 +33,14 @@ class PCA(object):
 class PCA_SCORE(PCA):
     
     def fit(self,base1):
-        base = Base(copy.deepcopy(base1.classes),copy.deepcopy(base1.atributos))
-        copia = np.array(copy.deepcopy(base.atributos))
-        cov = np.cov(copia.T)
-        self.autoValues,autoVectors = np.linalg.eig(cov)
+        super().fit(base1)
+        base = super().run(base1, len(base1.classes))
         m1 = base.getSubBaseClasse(0)
         m2 = base.getSubBaseClasse(1)
         m1 = np.mean(m1.atributos, axis=0)
         m2 = np.mean(m2.atributos, axis=0)
         scores = self.__score(m1, m2)
-        self.scores,self.autoVectors = zip(*sorted(zip(scores, autoVectors ),reverse=True))
+        self.scores,self.autoVectors = zip(*sorted(zip(scores, self.autoVectors ),reverse=True))
     
     @jit
     def __score(self,media1,media2):

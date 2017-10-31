@@ -17,12 +17,12 @@ class GerarGrafico(object):
         plt.grid(True)
         axes = plt.gca()
         axes.set_xlim([0,18])
-        axes.set_ylim([0.76,0.87])
+        axes.set_ylim([0.75,1])
         plt.show()
         
     
     @staticmethod
-    def saveMultuplos(x,Y,titulo="",legendaX="",legendaY="",legenda= []):
+    def saveMultuplos(x,Y,titulo="",legendaX="",legendaY="",legenda= [],xlim=[0,18],ylim=[0.75,1]):
         for i in range(len(Y)):
             plt.plot(x,Y[i])
             plt.title(titulo)
@@ -30,8 +30,8 @@ class GerarGrafico(object):
             plt.ylabel(legendaY)
             plt.grid(True)
         axes = plt.gca()
-        axes.set_xlim([0,18])
-        axes.set_ylim([0.76,0.87])
+        axes.set_xlim(xlim)
+        axes.set_ylim(ylim)
         plt.legend(legenda,loc='upper left')
         plt.show()
         

@@ -6,6 +6,7 @@ Created on 15 de out de 2017
 from CreateBaseFromFile import CreateBaseFromFile
 from sklearn.model_selection import train_test_split
 from PCA import PCA as PCAR
+from PCA import PCA_SCORE as PCARS 
 from Base import Base
 from Grafico import GerarGrafico
 from sklearn.decomposition import PCA
@@ -22,8 +23,6 @@ if __name__ == '__main__':
     erroNaiveBank  = 0
     erroArvoreBank  = 0
     
-    removerAtrC = 18
-    removerAtrB = 4
     for i in range(100):
         train_atr, test_atr, train_classes, test_classes = train_test_split(baseClimate.atributos, baseClimate.classes, test_size=0.5, random_state=i) 
         qt1 = len(test_classes)
@@ -38,36 +37,88 @@ if __name__ == '__main__':
     print("SEM PCA base Climate:\nerro KNN:%s\nacerto  NaiveBayes:%s\nerro arvore:%s\n"%(1-erroKNNCli/qt1,1-erroNaiveCli/qt1,1-erroArvoreCli/qt1))
     print("SEM PCA base BankNote:\nerro KNN:%s\nacerto  NaiveBayes:%s\nerro arvore:%s\n"%(1-erroKNNBank/qt2,1-erroNaiveBank/qt2,1-erroArvoreBank/qt2))
     
-    acertoPCA = [[],[],[]]
-    acertoPCAS = [[],[],[]]
-    acertoPCASK = [[],[],[]]
-    acertoPCACloves = [[],[],[]]
-    acertoPCAScoreCloves = []
+    acertoPCA = [[],[],[],[]]
+    acertoPCAS = [[],[],[],[]]
     extraido = list(range(1,19))
-    pcaR = PCAR()
     for j in extraido:
-        erroKNNCli = 0
-        erroNaiveCli = 0
-        erroArvoreCli = 0
-        
+        erros = [0]*4
+        errosScore = [0]*4
         for i in range(100):
-            
+            pcaR = PCAR()
+            pcaRS = PCARS()
             train_atr, test_atr, train_classes, test_classes = train_test_split(baseClimate.atributos, baseClimate.classes, test_size=0.5, random_state=i) 
-            pcaR.fitScore(Base(train_classes,train_atr))
-            baseTreino = pcaR.run(Base(train_classes,train_atr), j)
-            baseTeste = pcaR.run(Base(test_classes,test_atr),j)
+            b = Base(train_classes,train_atr)#cria a base de treino
+            pcaR.fit(b)#prepara o PCA
+            pcaRS.fit(b)#prepara o PCA com score
+            
+            baseTreino = pcaR.run(Base(train_classes,train_atr), j) #Cria base de treino projetada pelo PCA
+            baseTeste = pcaR.run(Base(test_classes,test_atr),j) #Cria base de teste projetada pelo PCA
+            
+            baseTreinoS = pcaRS.run(Base(train_classes,train_atr), j) #Cria base de treino projetada pelo PCA com score
+            baseTesteS = pcaRS.run(Base(test_classes,test_atr),j) #Cria base de teste projetada pelo PCA com score
             qt1 = len(test_classes)
-            erroKNNCli = classicarKNN(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erroKNNCli
-        print("COM PCA base Climate - atr:%s:\nacerto KNN:%s\nacerto NaiveBayes:%s\nacerto arvore:%s\n"%(j,1-erroKNNCli,1-erroNaiveCli,1-erroArvoreCli))
-        acertoPCA[0].append(1-erroKNNCli)
+            #Erros dos classificados - PCA
+            erros[0] = classicarKNN(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[0]
+            erros[1] = naiveBayes(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[1]
+            erros[2] = arvoreDecisao(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[2]
+            erros[3] = dlFisher(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[3]
+            #Erros dos classificadores - PCA Score
+            errosScore[0] = classicarKNN(baseTreinoS.atributos, baseTreinoS.classes, baseTesteS.atributos, baseTesteS.classes)/qt1 + errosScore[0]
+            errosScore[1] = naiveBayes(baseTreinoS.atributos, baseTreinoS.classes, baseTesteS.atributos, baseTesteS.classes)/qt1 + errosScore[1]
+            errosScore[2] = arvoreDecisao(baseTreinoS.atributos, baseTreinoS.classes, baseTesteS.atributos, baseTesteS.classes)/qt1 + errosScore[2]
+            errosScore[3] = dlFisher(baseTreinoS.atributos, baseTreinoS.classes, baseTesteS.atributos, baseTesteS.classes)/qt1 + errosScore[3]
+            
+        print("COM PCA base Climate - atr:%s:\nacerto KNN:%s\nacerto NaiveBayes:%s\nacerto arvore:%s\nfisher:%s\n"%(j,1-erros[0],1-erros[2],1-erros[2],1-erros[3]))
+        print("COM PCA Score base Climate - atr:%s:\nacerto KNN:%s\nacerto NaiveBayes:%s\nacerto arvore:%s\nfisher:%s\n"%(j,1-errosScore[0],1-errosScore[1],1-errosScore[2],1-errosScore[3]))
+        for i,e in enumerate(erros):
+            acertoPCA[i].append(1-e)
+            acertoPCAS[i].append(1-errosScore[i])
     
     print("\n") 
-
-    GerarGrafico.gerarGrafico(extraido, acertoPCA[0], "Climate KNN PCA", "Extraido", "Acerto")
-    #GerarGrafico.gerarGrafico(extraido,acertoPCAS[0],"Climate KNN PCA Score", "Extraido", "Acerto")
-    #GerarGrafico.gerarGrafico(extraido,acertoPCASK[0],"Climate KNN PCA SK", "Extraido", "Acerto")
-    GerarGrafico.gerarGrafico(extraido,acertoPCACloves[0],"Climate KNN PCA cloves", "Extraido", "Acerto")
-    GerarGrafico.saveMultuplos(extraido, [acertoPCA[0]], "taxa de acerto PCAs", "quantidade de atributos", "acerto", ["PCA Raul"])
-    extraido = list(range(1,19))
+    GerarGrafico.saveMultuplos(extraido, [acertoPCA[0],acertoPCAS[0]], "taxa de acerto PCAs - KNN CLIMATE", "quantidade de atributos", "acerto", ["PCA","PCA Score"])
+    GerarGrafico.saveMultuplos(extraido, [acertoPCA[1],acertoPCAS[1]], "taxa de acerto PCAs - Naive Bayes CLIMATE", "quantidade de atributos", "acerto", ["PCA","PCA Score"])
+    GerarGrafico.saveMultuplos(extraido, [acertoPCA[2],acertoPCAS[2]], "taxa de acerto PCAs - Arvore CLIMATE", "quantidade de atributos", "acerto", ["PCA","PCA Score"])
+    GerarGrafico.saveMultuplos(extraido, [acertoPCA[3],acertoPCAS[3]], "taxa de acerto PCAs - Fisher CLIMATE", "quantidade de atributos", "acerto", ["PCA","PCA Score"])
     
+    extraido = list(range(1,5))
+    acertoPCA = [[],[],[],[]]
+    acertoPCAS = [[],[],[],[]]
+    for j in extraido:
+            erros = [0]*4
+            errosScore = [0]*4
+            for i in range(100):
+                pcaR = PCAR()
+                pcaRS = PCARS()
+                train_atr, test_atr, train_classes, test_classes = train_test_split(baseBank.atributos, baseBank.classes, test_size=0.5, random_state=i) 
+                b = Base(train_classes,train_atr)
+                pcaR.fit(b)
+                pcaRS.fit(b)
+                baseTreino = pcaR.run(Base(train_classes,train_atr), j)
+                baseTeste = pcaR.run(Base(test_classes,test_atr),j)
+                
+                baseTreinoS = pcaRS.run(Base(train_classes,train_atr), j)
+                baseTesteS = pcaRS.run(Base(test_classes,test_atr),j)
+                qt1 = len(test_classes)
+                
+                erros[0] = classicarKNN(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[0]
+                erros[1] = naiveBayes(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[1]
+                erros[2] = arvoreDecisao(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[2]
+                erros[3] = dlFisher(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[3]
+                
+                errosScore[0] = classicarKNN(baseTreinoS.atributos, baseTreinoS.classes, baseTesteS.atributos, baseTesteS.classes)/qt1 + errosScore[0]
+                errosScore[1] = naiveBayes(baseTreinoS.atributos, baseTreinoS.classes, baseTesteS.atributos, baseTesteS.classes)/qt1 + errosScore[1]
+                errosScore[2] = arvoreDecisao(baseTreinoS.atributos, baseTreinoS.classes, baseTesteS.atributos, baseTesteS.classes)/qt1 + errosScore[2]
+                errosScore[3] = dlFisher(baseTreinoS.atributos, baseTreinoS.classes, baseTesteS.atributos, baseTesteS.classes)/qt1 + errosScore[3]
+                
+            print("COM PCA base BANK - atr:%s:\nacerto KNN:%s\nacerto NaiveBayes:%s\nacerto arvore:%s\nfisher:%s\n"%(j,1-erros[0],1-erros[2],1-erros[2],1-erros[3]))
+            print("COM PCA Score base BANK - atr:%s:\nacerto KNN:%s\nacerto NaiveBayes:%s\nacerto arvore:%s\nfisher:%s\n"%(j,1-errosScore[0],1-errosScore[1],1-errosScore[2],1-errosScore[3]))
+            for i,e in enumerate(erros):
+                acertoPCA[i].append(1-e)
+                acertoPCAS[i].append(1-errosScore[i])
+        
+    print("\n") 
+    GerarGrafico.saveMultuplos(extraido, [acertoPCA[0],acertoPCAS[0]], "taxa de acerto PCAs - KNN BANK", "quantidade de atributos", "acerto", ["PCA","PCA Score"],[0,4],[0.9,1.2])
+    GerarGrafico.saveMultuplos(extraido, [acertoPCA[1],acertoPCAS[1]], "taxa de acerto PCAs - Naive Bayes BANK", "quantidade de atributos", "acerto", ["PCA","PCA Score"],[0,4],[0.9,1.2])
+    GerarGrafico.saveMultuplos(extraido, [acertoPCA[2],acertoPCAS[2]], "taxa de acerto PCAs - Arvore BANK", "quantidade de atributos", "acerto", ["PCA","PCA Score"],[0,4],[0.9,1.2])
+    GerarGrafico.saveMultuplos(extraido, [acertoPCA[3],acertoPCAS[3]], "taxa de acerto PCAs - Fisher BANK", "quantidade de atributos", "acerto", ["PCA","PCA Score"],[0,4],[0.9,1.2])
     pass

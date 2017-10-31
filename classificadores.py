@@ -7,6 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.lda import LDA
 
 def classicarKNN(train_atr,train_classes,test_atr,teste_classe,n=1):
     
@@ -32,6 +33,10 @@ def arvoreDecisao(train_atr,train_classes,test_atr,teste_classe,mimNodes = 10):
     erroArvoreCli = (1-accuracy_score(teste_classe,tree.predict(test_atr)))
     return erroArvoreCli
 
-
+def dlFisher(train_atr,train_classes,test_atr,teste_classe):
+    clf = LDA()
+    clf.fit(train_atr,train_classes)
+    pred = clf.predict(test_atr)
+    return (1-accuracy_score(teste_classe,pred))
     
     

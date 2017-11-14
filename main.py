@@ -47,15 +47,15 @@ if __name__ == '__main__':
             pcaR = PCAR()
             pcaRS = PCARS()
             train_atr, test_atr, train_classes, test_classes = train_test_split(baseClimate.atributos, baseClimate.classes, test_size=0.5, random_state=i) 
-            b = Base(train_classes,train_atr)#cria a base de treino
+            b = Base(train_classes,train_atr,{0:0,1:1})#cria a base de treino
             pcaR.fit(b)#prepara o PCA
             pcaRS.fit(b)#prepara o PCA com score
             
-            baseTreino = pcaR.run(Base(train_classes,train_atr), j) #Cria base de treino projetada pelo PCA
-            baseTeste = pcaR.run(Base(test_classes,test_atr),j) #Cria base de teste projetada pelo PCA
+            baseTreino = pcaR.run(Base(train_classes,train_atr,{0:0,1:1}), j) #Cria base de treino projetada pelo PCA
+            baseTeste = pcaR.run(Base(test_classes,test_atr,{0:0,1:1}),j) #Cria base de teste projetada pelo PCA
             
-            baseTreinoS = pcaRS.run(Base(train_classes,train_atr), j) #Cria base de treino projetada pelo PCA com score
-            baseTesteS = pcaRS.run(Base(test_classes,test_atr),j) #Cria base de teste projetada pelo PCA com score
+            baseTreinoS = pcaRS.run(Base(train_classes,train_atr,{0:0,1:1}), j) #Cria base de treino projetada pelo PCA com score
+            baseTesteS = pcaRS.run(Base(test_classes,test_atr,{0:0,1:1}),j) #Cria base de teste projetada pelo PCA com score
             qt1 = len(test_classes)
             #Erros dos classificados - PCA
             erros[0] = classicarKNN(baseTreino.atributos, baseTreino.classes, baseTeste.atributos, baseTeste.classes)/qt1 + erros[0]

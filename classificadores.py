@@ -8,7 +8,6 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-
 def classicarKNN(train_atr,train_classes,test_atr,teste_classe,n=1):
     
     knn = KNeighborsClassifier(n_neighbors=n)
